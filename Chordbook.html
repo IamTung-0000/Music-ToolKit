@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chordbook</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{--bg:#e4e4e7;--bar:#fff;--bar-fg:#111;--bar-bd:#c4c4c8;--acc:#2563eb;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#202023;--bar:#2c2c30;--bar-fg:#eee;--bar-bd:#48484e;--acc:#7aa2ff}}
+:root[data-theme="dark"]{--bg:#202023;--bar:#2c2c30;--bar-fg:#eee;--bar-bd:#48484e;--acc:#7aa2ff}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:Helvetica,Arial,sans-serif;color:var(--bar-fg)}
+.tb{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--bar);border-bottom:1px solid var(--bar-bd);display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 10px;font-size:13px}
+.tb button,.tb select,.lbl{font:inherit;background:transparent;color:var(--bar-fg);border:1px solid var(--bar-bd);border-radius:6px;padding:5px 9px;cursor:pointer}
+.tb button:hover{border-color:var(--acc)}.tb .p{background:var(--acc);color:#fff;border-color:var(--acc)}
+.lib{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 10px;background:var(--bar);border-bottom:1px solid var(--bar-bd);font-size:13px}.lib[hidden]{display:none}#chips{display:contents}.lib button{font:inherit;color:var(--bar-fg);background:transparent;border:1px solid var(--bar-bd);border-radius:6px;padding:5px 9px;cursor:pointer}.lib .p{background:var(--acc);color:#fff;border-color:var(--acc)}.it{display:flex;border:1px solid var(--bar-bd);border-radius:6px;overflow:hidden}.it button{border:0;border-radius:0;padding:5px 8px}.it.cur{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 15%,transparent)}.it .sl{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sep{width:1px;height:22px;background:var(--bar-bd)}
+.wrap{padding:16px 8px 60px;display:flex;flex-direction:column;align-items:center;gap:16px}
+.page{position:relative;overflow:hidden;width:210mm;height:296mm;background:#fff;color:#000;padding:14mm 12mm;box-shadow:0 2px 14px rgba(0,0,0,.35);flex:none}.pn{position:absolute;bottom:5mm;left:0;right:0;text-align:center;font-size:9px;color:#666}
+input{font:inherit;color:#000;background:transparent;border:0;outline:0;min-width:0;border-radius:0}
+input:hover,input:focus{background:#eef3ff}
+.head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10mm}
+#title{font-size:34px;width:340px;max-width:100%}#artist{font-size:15px;width:160px}
+.meta{display:flex;flex-direction:column;align-items:flex-end;font-size:12px;gap:2px}
+.meta label{display:flex;align-items:center;gap:3px}.meta input{width:46px;text-align:right}
+.sec{break-inside:avoid;margin-bottom:9mm;position:relative}
+.sh{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:6px}
+.name{min-width:38px;height:38px;border:1px solid #000;font-size:9px;font-weight:700;text-align:center;padding:0}
+.right{display:flex;align-items:center;gap:6px;font-size:12px}
+.nbars{width:24px;height:22px;border:1px solid #000;text-align:center;font-size:11px;padding:0}
+.ctl button{font-size:11px;border:1px solid #bbb;background:#fff;color:#000;border-radius:4px;cursor:pointer;padding:1px 5px}
+.cm{display:block;border:1px solid #000;border-bottom:0;font-size:8px;font-weight:700;min-width:64px;height:16px;padding:0 4px}
+.cm:placeholder-shown{border-color:#ccc}
+.row{position:relative;border:1px solid #000;border-bottom:0}.rc{position:absolute;left:-11mm;top:0;width:10mm;height:16px;font-size:9px;padding:0;border:1px solid #bbb;background:#fff;color:#000;border-radius:3px}.row:last-child{border-bottom:1px solid #000}
+.nums,.chords{display:grid}
+.nums div{height:11px;font-size:7px;padding:0 3px;line-height:11px;border-left:1px solid #000;border-bottom:1px solid #000}
+.nums div:first-child,.chords .bar:first-child{border-left:0}
+.chords .bar{border-left:1px solid #000;height:30px;display:flex;position:relative}
+.bar .cin{flex:1;width:0;text-align:center;font-size:13px;padding:0 1px}
+.bar .cin+.cin{border-left:1px solid #000}
+.dvw{display:none;position:absolute;right:0;bottom:0;z-index:2}.dvw button{font-size:10px;line-height:1;padding:1px 5px;border:0;background:#dde;color:#000;cursor:pointer}.bar:hover .dvw{display:flex}
+.lp{position:absolute;left:100%;top:12px;margin-left:2px;width:38px;height:30px;font-size:13px;font-weight:700;padding:0 2px;text-align:left}.lp::placeholder{color:#bbb;font-weight:400}
+.empty{border-left:1px solid #000}
+.cmrow{display:grid;border-top:1px solid #000}.cmrow input{width:100%;font-size:8px;height:16px;padding:0 3px;border-left:1px solid #000;color:#333}.cmrow input:first-child{border-left:0}.cmrow input::placeholder{color:#bbb}
+@media print{
+ @page{size:A4;margin:0}
+ body,:root{background:#fff;padding:0}.tb,.lib,.ctl,.dvw,.rc{display:none!important}
+ .wrap{padding:0;zoom:1!important;display:block}.page{box-shadow:none;break-after:page;page-break-after:always}.page:last-child{break-after:auto;page-break-after:auto}
+ input:hover,input:focus{background:transparent}
+ .cm:placeholder-shown,.cmrow input:placeholder-shown,.lp:placeholder-shown{visibility:hidden}.cmrow:not(:has(input:not(:placeholder-shown))){display:none}
+ *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style></head><body>
+<div class="tb">
+ <button onclick="$('lib').hidden=!$('lib').hidden">Library</button><button onclick="newSong()">New song</button><button onclick="saveFile()" class="p">Save song</button>
+ <button onclick="$('f').click()">Open song</button><input type="file" id="f" accept=".json,application/json" hidden>
+ <button onclick="exportPdf()" class="p">Export PDF</button><button onclick="doPrint()">Print</button><span class="sep"></span>
+ <span>Add:</span><select id="preset" onchange="addSec(this.value);this.selectedIndex=0"><option value="">section…</option><option>Intro</option><option>Verse</option><option>Pre-Chorus</option><option>Chorus</option><option>Bridge</option><option>Solo</option><option>Instrument</option><option>Outro</option><option>Custom</option></select>
+ <span class="sep"></span><span>Transpose</span><button onclick="transpose(-1)">−1</button><button onclick="transpose(1)">+1</button>
+ <span class="sep"></span><span>Per row (all)</span><select id="perRow" onchange="S.perRow=+this.value;S.secs.forEach(s=>delete s.rl);draw()"><option>4</option><option>6</option><option selected>8</option></select>
+ <span>Number every</span><select id="numEvery" onchange="S.numEvery=+this.value;draw()"><option>1</option><option>2</option><option selected>4</option></select><span id="msg" style="margin-left:auto;color:var(--acc)"></span>
+</div>
+<div class="lib" id="lib"><span id="chips"></span><button onclick="saveFile(1)" class="p">Save library</button><button onclick="$('fl').click()">Open library</button><input type="file" id="fl" accept=".json,application/json" hidden></div>
+<div class="wrap" id="wrap"></div>
+<script>
+const $=id=>document.getElementById(id);
+const blank=n=>Array.from({length:n},()=>[""]);
+const fresh=()=>({title:"Song Name",artist:"Artist",bpm:100,time:"4/4",key:"C",v:2,perRow:8,numEvery:1,
+ secs:[{name:"Intro",comment:"",bars:blank(16)},{name:"Verse",comment:"",bars:blank(16)},{name:"Chorus",comment:"",bars:blank(16)}]});
+let L;try{L=JSON.parse(localStorage.getItem("chordbook2"))}catch(e){}
+if(!L||!L.songs||!L.songs.length){let o;try{o=JSON.parse(localStorage.getItem("chordbook"))}catch(e){}L={cur:0,songs:[o&&o.secs?o:fresh()]}}
+L.songs.forEach(s=>{if(s.v!=2){s.numEvery=1;s.v=2}});L.cur=Math.min(L.cur||0,L.songs.length-1);
+let S=L.songs[L.cur];
+
+
+const save=()=>{try{localStorage.setItem("chordbook2",JSON.stringify(L))}catch(e){}};
+const msg=t=>{$("msg").textContent=t;setTimeout(()=>$("msg").textContent="",5000)};
+const el=(t,c,p)=>{const e=document.createElement(t);if(c)e.className=c;if(p)p.appendChild(e);return e};
+function fw(i,m){const f=()=>{i.style.width=`max(${m}px,${i.value.length+2}ch)`};f();i.addEventListener("input",f)}
+function bind(inp,obj,key,num){inp.value=obj[key]??"";inp.oninput=()=>{obj[key]=num?+inp.value||0:inp.value;save()}}
+function draw(){
+ $("perRow").value=S.perRow;$("numEvery").value=S.numEvery;
+ const W=$("wrap");W.innerHTML="";let P=el("div","page",W);
+ const h=el("div","head",P),l=el("div","",h);
+ const t=el("input","",l);t.id="title";t.placeholder="Song name";bind(t,S,"title");t.addEventListener("input",renderLib);
+ const a=el("input","",l);a.id="artist";a.placeholder="Artist";bind(a,S,"artist");a.addEventListener("input",renderLib);
+ const m=el("div","meta",h);
+ [["BPM","bpm",1],["Time","time"],["Key","key"]].forEach(([n,k,num])=>{const lb=el("label","",m);lb.append(n+":");bind(el("input","",lb),S,k,num)});
+ S.secs.forEach((s,si)=>{
+  const sec=el("div","sec",P),sh=el("div","sh",sec);
+  const nm=el("input","name",sh);bind(nm,s,"name");nm.placeholder="Name";fw(nm,38);
+  const r=el("div","right",sh);
+  const c=el("span","ctl",r);
+  [["▲",()=>mv(si,-1)],["▼",()=>mv(si,1)],["⧉",()=>dup(si)],["✕",()=>del(si)]].forEach(([x,f])=>{const b=el("button","",c);b.textContent=x;b.onclick=()=>{if(x=="✕"){if(b.textContent=="✕"){b.textContent="Delete?";b.style.cssText="background:#d33;color:#fff";setTimeout(()=>{b.textContent="✕";b.style.cssText=""},2500);return}}f()}});
+  const nb=el("input","nbars",r);nb.value=s.bars.length;
+  nb.onchange=()=>{const n=Math.max(1,Math.min(128,+nb.value||1));while(s.bars.length<n)s.bars.push([""]);s.bars.length=n;if(s.cm)s.cm.length=Math.min(s.cm.length,n);refit(s);save();draw()};
+  r.append(" Bar");
+  const cm=el("input","cm",sec);cm.placeholder="COMMENT";bind(cm,s,"comment");fw(cm,64);
+  const pr=Math.min(S.perRow,s.bars.length);s.cm=s.cm||[];
+  const rl=[];if(s.rl)rl.push(...s.rl);else for(let q=0;q<s.bars.length;q+=pr)rl.push(Math.min(pr,s.bars.length-q));
+  for(let k=0,i=0;k<rl.length;i+=rl[k++]){const cnt=rl[k],cols=cnt;
+   const row=el("div","row",sec),nums=el("div","nums",row),ch=el("div","chords",row),cmr=el("div","cmrow",row);const rc=el("select","rc",row);for(let q=1;q<=16;q++){const o=el("option","",rc);o.value=o.textContent=q}rc.value=cnt;rc.title="Bars in this row";rc.onchange=()=>setRow(s,k,+rc.value);
+   s.lp=s.lp||{};const lk=i+cnt-1,lp=el("input","lp",row);lp.placeholder="x";lp.title="Loop count for this row";lp.value=s.lp[lk]||"";lp.oninput=()=>{s.lp[lk]=lp.value;save()};lp.onblur=()=>{if(/^\d+$/.test(lp.value)){lp.value="x"+lp.value;s.lp[lk]=lp.value;save()}};
+   row.style.width=cnt/8*100+"%";nums.style.gridTemplateColumns=ch.style.gridTemplateColumns=cmr.style.gridTemplateColumns=`repeat(${cols},1fr)`;
+   for(let j=0;j<cols;j++){
+    const i2=i+j;
+    el("div","",nums).textContent=(j<cnt&&i2%S.numEvery==0)?i2+1:"";
+    if(j>=cnt){el("div","empty",ch);el("div","empty",cmr);continue}
+    const bar=el("div","bar",ch),parts=s.bars[i2];
+    parts.forEach((v,pi)=>{const ci=el("input","cin",bar);ci.value=v;ci.spellcheck=false;
+     ci.oninput=()=>{parts[pi]=ci.value;save();fc(ci)};ci.onkeydown=nav});
+    const w=el("span","dvw",bar),mb=el("button","",w),sb=el("button","",w);mb.textContent="−";mb.title="Combine";sb.textContent="÷";sb.title="Divide";const cc=el("input","",cmr);cc.placeholder=" ";cc.value=s.cm[i2]||"";cc.oninput=()=>{s.cm[i2]=cc.value;save()};
+    sb.onclick=()=>{if(parts.length<8){parts.push("");save();draw()}};mb.onclick=()=>{if(parts.length>1){const l=parts.pop();if(!parts[parts.length-1])parts[parts.length-1]=l;save();draw()}};
+   }
+  }
+ });
+ renderLib();paginate();document.querySelectorAll(".cin").forEach(fc);fit();
+}
+function fc(i){let s=13;i.style.fontSize=s+"px";while(i.scrollWidth>i.clientWidth&&s>5){s-=.5;i.style.fontSize=s+"px"}}
+function nav(e){const all=[...document.querySelectorAll(".cin")],i=all.indexOf(e.target),x=e.target;
+ let to=null;
+ if(e.key=="Enter"||(e.key=="ArrowRight"&&x.selectionStart==x.value.length))to=all[i+1];
+ else if(e.key=="ArrowLeft"&&x.selectionStart==0)to=all[i-1];
+ if(to){e.preventDefault();to.focus();to.select()}}
+function refit(s){if(!s.rl)return;let rem=s.bars.length;const o=[];for(const r of s.rl){if(rem<=0)break;const x=Math.min(r,rem);o.push(x);rem-=x}while(rem>0){const x=Math.min(S.perRow,rem);o.push(x);rem-=x}s.rl=o}
+function setRow(s,k,n){const tot=s.bars.length,pr=Math.min(S.perRow,tot);
+ const rl=s.rl||Array.from({length:Math.ceil(tot/pr)},(_,q)=>Math.min(pr,tot-q*pr));
+ const head=rl.slice(0,k),used=head.reduce((a,b)=>a+b,0);n=Math.min(n,tot-used);
+ const out=[...head,n];let rem=tot-used-n;
+ for(const r of rl.slice(k+1)){if(rem<=0)break;const x=Math.min(r,rem);out.push(x);rem-=x}
+ while(rem>0){const x=Math.min(S.perRow,rem);out.push(x);rem-=x}
+ s.rl=out;save();draw()}
+const mv=(i,d)=>{const j=i+d;if(j<0||j>=S.secs.length)return;[S.secs[i],S.secs[j]]=[S.secs[j],S.secs[i]];save();draw()};
+const dup=i=>{S.secs.splice(i+1,0,JSON.parse(JSON.stringify(S.secs[i])));save();draw()};
+const del=i=>{S.secs.splice(i,1);save();draw()};
+function addSec(n){if(!n)return;S.secs.push({name:n=="Custom"?"":n,comment:"",bars:blank(16)});save();draw();window.scrollTo(0,document.body.scrollHeight)}
+function newSong(){L.songs.push(fresh());pick(L.songs.length-1)}
+function pick(i){L.cur=i;S=L.songs[i];save();draw()}
+function renderLib(){const c=$("chips");c.innerHTML="";
+ L.songs.forEach((s,i)=>{const d=el("div","it"+(i==L.cur?" cur":""),c);
+  const b=el("button","sl",d);b.textContent=(s.title||"Untitled")+(s.artist?" — "+s.artist:"");b.onclick=()=>pick(i);
+  const u=el("button","",d);u.textContent="⧉";u.title="Duplicate";u.onclick=()=>{L.songs.splice(i+1,0,JSON.parse(JSON.stringify(s)));pick(i+1)};
+  const x=el("button","",d);x.textContent="✕";x.title="Delete song";
+  x.onclick=()=>{if(x.textContent=="✕"){x.textContent="Delete?";x.style.cssText="background:#d33;color:#fff";setTimeout(()=>{x.textContent="✕";x.style.cssText=""},2500);return}
+   L.songs.splice(i,1);if(!L.songs.length)L.songs.push(fresh());pick(Math.min(i<L.cur?L.cur-1:L.cur,L.songs.length-1))};
+ })}
+function paginate(){
+ const W=$("wrap");W.style.zoom=1;
+ let pg=W.firstElementChild;const secs=[...pg.querySelectorAll(".sec")];
+ const pb=parseFloat(getComputedStyle(pg).paddingBottom)+4;
+ secs.forEach(s=>s.remove());
+ secs.forEach(s=>{pg.appendChild(s);if(s.offsetTop+s.offsetHeight>pg.clientHeight-pb&&s.previousElementSibling){pg=el("div","page",W);pg.appendChild(s)}});
+ [...W.children].forEach((p,i,a)=>{el("div","pn",p).textContent=(i+1)+" / "+a.length});
+}
+const SH=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"],FL=["C","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B"];
+function tr(ch,n){return ch.replace(/(^|[\/(\s])([A-G])([#b]?)/g,(m,p,r,a)=>{
+ const nm=r+a,idx=SH.indexOf(nm)>=0?SH.indexOf(nm):FL.indexOf(nm);if(idx<0)return m;
+ return p+(a=="b"||nm=="F"&&n<0?FL:SH)[(idx+n+120)%12]})}
+function transpose(n){S.key=tr(S.key,n);S.secs.forEach(s=>s.bars.forEach(b=>b.forEach((c,i)=>b[i]=tr(c,n))));save();draw()}
+const fname=all=>all?"chordbook-library.json":((S.title||"chordbook").replace(/[^\w\- ]+/g,"").trim()||"chordbook")+".json";
+async function saveFile(all){
+ const data=JSON.stringify(all?{chordbookLibrary:1,songs:L.songs}:S,null,1);
+ try{const d=await claude.use("downloads");if(d){await d.save({filename:fname(all),data});return}}catch(e){if(e&&e.code=="declined")return}
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([data],{type:"application/json"}));a.download=fname(all);a.click();
+}
+$("f").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
+ r.onload=()=>{try{const o=JSON.parse(r.result),n=(o.songs||[o]).filter(x=>x&&x.secs).map(x=>Object.assign(fresh(),x));if(!n.length)throw 0;L.songs.push(...n);pick(L.songs.length-1);msg("Loaded "+n.length+" song(s)")}catch(x){msg("Not a valid chordbook file.")}};
+ r.readAsText(f);e.target.value=""};
+$("fl").onchange=$("f").onchange;
+async function exportPdf(){
+ if(!window.html2canvas||!window.jspdf){msg("PDF library failed to load — check your connection.");return}
+ msg("Building PDF…");
+ const W=$("wrap"),z=W.style.zoom;W.style.zoom=1;
+ try{
+  const pages=[...W.querySelectorAll(".page")],pdf=new jspdf.jsPDF({unit:"mm",format:"a4"});
+  pages.forEach(p=>p.querySelectorAll(".cmrow,.cm").forEach(r=>{const v=r.tagName=="INPUT"?r.value:[...r.querySelectorAll("input")].some(x=>x.value);r.dataset.e=v?"":"1"}));
+  for(let i=0;i<pages.length;i++){
+   const cv=await html2canvas(pages[i],{scale:3,backgroundColor:"#fff",scrollX:0,scrollY:-window.scrollY,onclone:(d,pg)=>{
+    pg.style.boxShadow="none";
+    d.querySelectorAll(".dvw,.rc,.ctl").forEach(e=>e.remove());
+    d.querySelectorAll(".cmrow[data-e='1']").forEach(e=>e.remove());
+    d.querySelectorAll(".cm[data-e='1']").forEach(e=>e.style.visibility="hidden");
+    const vw=d.defaultView;
+    [...d.querySelectorAll("input")].map(e=>{const cs=vw.getComputedStyle(e);return [e,Array.from(cs).map(p=>p+":"+cs.getPropertyValue(p)).join(";"),cs.textAlign]}).forEach(([e,css,al])=>{const t=d.createElement("div");
+     t.style.cssText=css;
+     t.style.display="flex";t.style.alignItems="center";t.style.justifyContent=al=="center"?"center":(al=="right"||al=="end")?"flex-end":"flex-start";
+     t.style.whiteSpace="nowrap";t.style.overflow="hidden";t.style.lineHeight="1.2";t.style.backgroundColor="transparent";
+     t.textContent=e.value;e.replaceWith(t)});
+   }});
+   if(i)pdf.addPage();
+   pdf.addImage(cv.toDataURL("image/jpeg",0.95),"JPEG",0,0,210,297);
+  }
+  const blob=pdf.output("blob"),name=((S.title||"chordbook").replace(/[^\w\- ]+/g,"").trim()||"chordbook")+".pdf";
+  let d=null;try{d=await claude.use("downloads")}catch(e){}
+  if(d){await d.save({filename:name,data:blob});msg("PDF ready")}
+  else{const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click()}
+ }catch(e){if(!(e&&e.code=="declined"))msg("PDF export failed.");else msg("")}
+ finally{W.style.zoom=z}
+}
+function doPrint(){try{window.print()}catch(e){msg("Printing is blocked here — open the page in its own tab, press Ctrl/Cmd+P, then 'Save as PDF'.")}}
+function fit(){$("wrap").style.zoom=Math.min(1,(innerWidth-16)/794)}
+addEventListener("resize",fit);
+draw();
+</script></body></html>
